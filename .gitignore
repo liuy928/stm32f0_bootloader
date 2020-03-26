@@ -1,0 +1,35 @@
+# Resource files
+*.png
+*.jpg
+*.psd
+*.bmp
+*.zip
+*.pptx
+
+# IAR Debug and Settings  
+/prjs/*/project_enter/*/Exe
+/prjs/*/project_enter/*/List
+/prjs/*/project_enter/*/Obj
+/prjs/*/project_enter/settings
+prjs/settings/*.wsdt
+
+#*.crun  
+#*.dbgdt  
+#*.cspy  
+#*.cspy.*  
+#*.xcl  
+#*.dni  
+#*.wsdt  
+#*.wspos  
+#*.dep
+
+# VSCODE
+*.DB
+*.db
+
+*.DB-shm
+*.DB-wal
+
+prjs/02_intellisun_led_panel/doc/APP交互指令集/~$200110 手持设备-灯具交互指令集.docx
+
+prjs/settings/st_f4_products.wspos
