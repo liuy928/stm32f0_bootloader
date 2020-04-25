@@ -42,7 +42,7 @@ typedef enum
   ERR_TIMEOUT  = 0x03,
   ERR_DATA     = 0x04,
   ERR_LIMIT    = 0x05
-} YMODEM_ERROR_TYPE;
+} xYmodemError_t;
 
 typedef enum
 {
@@ -50,7 +50,7 @@ typedef enum
   YMODEM_ERROR    = 0x01,
   YMODEM_BUSY     = 0x02,
   YMODEM_TIMEOUT  = 0x03
-} YMODEM_STATUS_TYPE;
+} xYmodemStatus_t;
 /**
   * @}
   */
@@ -92,7 +92,7 @@ typedef enum
 #define ABORT2                  ((uint8_t)0x61)  /* 'a' == 0x61, abort by user */
 
 #define NAK_TIMEOUT             ((uint32_t)0x100000)
-#define DOWNLOAD_TIMEOUT        ((uint32_t)1000) /* One second retry delay */
+#define DOWNLOAD_TIMEOUT        ((uint32_t)100) /* 5 second retry delay */
 #define MAX_ERRORS              ((uint32_t)5)
 
 /* Exported macro ------------------------------------------------------------*/
@@ -110,12 +110,11 @@ typedef enum
    Note: this area is reserved for the IAP code                  */
 #define FLASH_PAGE_STEP         FLASH_PAGE_SIZE           /* Size of page : 2 Kbytes */
 
-/* Notable Flash addresses */
-//#define USER_FLASH_END_ADDRESS        0x08040000
+#define YMODEM_UART_PORT        (&bsp_instant_usart2)
 
 /* Exported functions ------------------------------------------------------- */
 extern void ymodem_int_idle_callback(void);
-extern YMODEM_ERROR_TYPE ymodem_receive(uint32_t *p_size);
+extern xYmodemError_t x_ymodem_receive(uint32_t* pul_size);
 
 #endif  /* __YMODEM_H_ */
 

@@ -4,14 +4,14 @@ static void _bsp_spi_gpio_config(SPI_TypeDef* SPIx)
 {
   LL_GPIO_InitTypeDef GPIO_InitStruct;
 
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.Mode       = LL_GPIO_MODE_ALTERNATE;
+  GPIO_InitStruct.Speed      = LL_GPIO_SPEED_FREQ_HIGH;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  GPIO_InitStruct.Pull       = LL_GPIO_PULL_NO;
 
   if(SPIx == SPI1) {
     LL_AHB1_GRP1_EnableClock(DRV_SPI1_PORT_CLK);
-	  LL_APB1_GRP2_EnableClock(DRV_SPI1_CLK);
+    LL_APB1_GRP2_EnableClock(LL_APB1_GRP2_PERIPH_SPI1);
 
     GPIO_InitStruct.Alternate   = LL_GPIO_AF_0;
     GPIO_InitStruct.Pin         = DRV_SPI1_MOSI_PIN
@@ -19,16 +19,7 @@ static void _bsp_spi_gpio_config(SPI_TypeDef* SPIx)
                                   | DRV_SPI1_SCLK_PIN;
     LL_GPIO_Init(DRV_SPI1_PORT, &GPIO_InitStruct);
   } else if(SPIx == SPI2) {
-    LL_AHB1_GRP1_EnableClock(DRV_SPI2_PORT_CLK);
-	  LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_SPI2);
 
-    GPIO_InitStruct.Alternate   = LL_GPIO_AF_0;
-    GPIO_InitStruct.Pin         = DRV_SPI2_MOSI_PIN
-                                  | DRV_SPI2_MISO_PIN | DRV_SPI2_SCLK_PIN;
-    LL_GPIO_Init(DRV_SPI2_PORT, &GPIO_InitStruct);
-//    GPIO_InitStruct.Alternate   = LL_GPIO_AF_5;
-//    GPIO_InitStruct.Pin         = DRV_SPI2_SCLK_PIN;
-//    LL_GPIO_Init(DRV_SPI2_PORT, &GPIO_InitStruct);
   }
 }
 
@@ -44,7 +35,7 @@ void bsp_spi_config(SPI_TypeDef* SPIx)
   SPI_InitStruct.ClockPolarity            = LL_SPI_POLARITY_HIGH;
   SPI_InitStruct.ClockPhase               = LL_SPI_PHASE_2EDGE;
   SPI_InitStruct.NSS                      = LL_SPI_NSS_SOFT;
-  SPI_InitStruct.BaudRate                 = LL_SPI_BAUDRATEPRESCALER_DIV8;
+  SPI_InitStruct.BaudRate                 = LL_SPI_BAUDRATEPRESCALER_DIV2;
   SPI_InitStruct.BitOrder                 = LL_SPI_MSB_FIRST;
   SPI_InitStruct.CRCCalculation           = LL_SPI_CRCCALCULATION_DISABLE;
   SPI_InitStruct.CRCPoly                  = 7;

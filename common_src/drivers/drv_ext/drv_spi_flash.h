@@ -19,9 +19,9 @@
 #define W25X_CHIP_ERASE       0xc7
 
 #define W25Q_CS(a)   if(a) \
-                      LL_GPIO_SetOutputPin(W25X_CS_PORT, DRV_W25_CS_PIN); \
+                      LL_GPIO_SetOutputPin(DRV_W25_CS_PORT, DRV_W25_CS_PIN); \
                      else \
-                      LL_GPIO_ResetOutputPin(W25X_CS_PORT, DRV_W25_CS_PIN)
+                      LL_GPIO_ResetOutputPin(DRV_W25_CS_PORT, DRV_W25_CS_PIN)
 
 extern void v_drv_w25q_init(void);
 

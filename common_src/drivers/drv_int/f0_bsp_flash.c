@@ -1,3 +1,4 @@
+
 #include "f0_bsp_flash.h"
 
 // @function 从flash读取多个板半字；
@@ -55,7 +56,7 @@ HAL_StatusTypeDef bsp_flash_write_n_hword_nocheck(uint32_t addr,
 // @para destination - 要写入的数据目标存放地址；
 // @para num - 写入的半字数
 uint16_t flash_buffer[FLASH_PAGE_SIZE / 2];
-HAL_StatusTypeDef FLASH_write_n_hword_check(uint32_t addr, void *destination,
+HAL_StatusTypeDef bsp_flash_write_n_hword_check(uint32_t addr, void *destination,
                                             uint16_t num)
 {
   //超出有效地址范围
@@ -98,8 +99,8 @@ HAL_StatusTypeDef FLASH_write_n_hword_check(uint32_t addr, void *destination,
 
     if (i < paper_remain) {
       // 擦除当前页
-      vBspFlashEraseNPage(FLASH_ADDR_BASE + paper_postion * FLASH_PAGE_SIZE,
-                          FLASH_ADDR_BASE + paper_postion * FLASH_PAGE_SIZE);
+      bsp_flash_erase_npage(FLASH_ADDR_BASE + paper_postion * FLASH_PAGE_SIZE,
+                          1);
       // 复制待写入数据到缓存
       for (i = 0; i < paper_remain; i++) {
         flash_buffer[paper_offset + i] = data[i];
@@ -141,9 +142,9 @@ HAL_StatusTypeDef FLASH_write_n_hword_check(uint32_t addr, void *destination,
 }
 
 // @function 擦除某一块区域的flash；
-// @para start_page - 起始扇区的地址；
-// @para end_page - 结束扇区的地址；
-HAL_StatusTypeDef vBspFlashEraseNPage(uint32_t start_page, uint32_t ul_num)
+// @para start_page - 起始页的地址；
+// @para end_page - 结束页的地址；
+HAL_StatusTypeDef bsp_flash_erase_npage(uint32_t start_page, uint32_t n_page)
 {
   HAL_FLASH_Unlock();  // unlock flash
 
@@ -151,7 +152,7 @@ HAL_StatusTypeDef vBspFlashEraseNPage(uint32_t start_page, uint32_t ul_num)
   uint32_t PageError = 0;
   EraseInitStruct.TypeErase = FLASH_TYPEERASE_PAGES;
   EraseInitStruct.PageAddress = start_page;
-  EraseInitStruct.NbPages = ul_num;
+  EraseInitStruct.NbPages = n_page;
   HAL_StatusTypeDef status = HAL_FLASHEx_Erase(&EraseInitStruct, &PageError);
 
   HAL_FLASH_Lock();  // lock

@@ -17,7 +17,7 @@
 // Section: File includes
 // *****************************************************************************
 // *****************************************************************************
-#include "system_platform_config.h"
+#include "stm32f0xx.h"
 
 // *****************************************************************************
 // *****************************************************************************
@@ -25,48 +25,45 @@
 // *****************************************************************************
 // *****************************************************************************
 typedef enum {
-  kSysTimeoutSet = 1,
-  kSysTimeoutClr = 0,
-}SystickTimeoutStatus;
+  TIMEOUT_SET = 1,
+  TIMEOUT_CLR = 0,
+}xTablePollTimerFlagStatus_t;
 
 typedef enum{
-  _0001ms_timeout = 1,
-  _0010ms_timeout = 10,
-  _0020ms_timeout = 20,
-  _0050ms_timeout = 50,
-  _0100ms_timeout = 100,
-  _0200ms_timeout = 200,
-  _0500ms_timeout = 500,
-  _1000ms_timeout = 1000,
-}SystickTimeOutTable;
+  _0001ms = 1,
+  _0010ms = 10,
+  _0020ms = 20,
+  _0050ms = 50,
+  _0100ms = 100,
+  _0200ms = 200,
+  _0500ms = 500,
+  _1000ms = 1000,
+}xTablePollTimerTimeOut_t;
 
 typedef struct{
-  uint32_t tick_countor;
+  uint32_t ul_counter;
   union{
     struct{
-      uint8_t _0001ms_bit : 1;
-      uint8_t _0010ms_bit : 1;
-      uint8_t _0020ms_bit : 1;
-      uint8_t _0050ms_bit : 1;
-      uint8_t _0100ms_bit : 1;
-      uint8_t _0200ms_bit : 1;
-      uint8_t _0500ms_bit : 1;
-      uint8_t _1000ms_bit : 1;
-    }_bit;
-    uint8_t _byte;
-  }_timeout_flag;
-}xSystickTimerHandle_t;
+      uint8_t _0001ms : 1;
+      uint8_t _0010ms : 1;
+      uint8_t _0020ms : 1;
+      uint8_t _0050ms : 1;
+      uint8_t _0100ms : 1;
+      uint8_t _0200ms : 1;
+      uint8_t _0500ms : 1;
+      uint8_t _1000ms : 1;
+    }bit;
+    uint8_t byte;
+  }flag;
+}xPollTimerHandle_t;
 
 
-// *****************************************************************************
 // *****************************************************************************
 // Section: Interface export.
 // *****************************************************************************
-// *****************************************************************************
+extern xPollTimerHandle_t x_poll_timer;
 
-extern xSystickTimerHandle_t x_systick_timer_handle;
-
-extern void vSystemPollTimeFlagManage(void);
+extern void v_system_poll_time_flag_manage(void);
 
 #endif // #ifndef __SYS_POLL_TIMER_H
 

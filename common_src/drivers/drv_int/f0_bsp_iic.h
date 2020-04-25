@@ -13,7 +13,7 @@
                                 else\
                                 LL_GPIO_ResetOutputPin(DRV_IIC_PORT,DRV_IIC_SCL_PIN)
 
-#define IIC_SDA_IS_SET() 			  LL_GPIO_IsInputPinSet(DRV_IIC_PORT, DRV_IIC_SDA_PIN) 
+#define IIC_SDA_IS_SET() 	LL_GPIO_IsInputPinSet(DRV_IIC_PORT, DRV_IIC_SDA_PIN) 
                              
 #define IIC_WR      0x00
 #define IIC_RD      0x01   

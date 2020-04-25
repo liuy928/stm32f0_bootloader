@@ -1,273 +1,158 @@
 /**************************************************************************
   Company:
     Self.
-    
+
   File Name:
     bsp_led.c
 
   Description:
-    .                                                         
+    .
   **************************************************************************/
 
-
-// *****************************************************************************
 // *****************************************************************************
 // Section: File includes
 // *****************************************************************************
-// *****************************************************************************
 #include "f0_bsp_adc.h"
-#include <stdlib.h>
 
 // variables
-uint16_t regular_adc_data_table[ADC_MOST_SAMPLE_CH_NUM];
+xAdcDataManagement_t *px_adc_data_management;
 
-uint8_t adc_sample_flag = 0;
-
-BSP_ADC_HANDLE drvDefaultADCSet = {DRV_ADC_INDEX,               //ADCģ��
-                          ADC1_COMP_IRQn,             //�ж�����
-                            DMA1_Channel1_IRQn,       //DMAͨ���ж�����
-                              kPrioL3,                //�ж����ȼ�
-                                0,                    //��ģʽ
-                                  DMA1_Channel1,      //DAMͨ��
-                                    0,                //��־
-                                      0               //ͨ������
-                         };
-
-static void _bsp_adc_pins_config(BSP_ADC_HANDLE *adc)
+// @function 初始化ADC 的DMA采集方式；配置成正常模式；
+// @para 无；
+// @return 无；
+static void prv_bsp_adc_dma_config(void)
 {
-  GPIO_InitTypeDef    GPIO_InitStructure;
-  
-  /* GPIOA Periph clock enable */
-  RCC_AHBPeriphClockCmd(adc->ch->clk, ENABLE);
-  
-  GPIO_InitStructure.GPIO_Pin     = adc->ch->pin;
-  GPIO_InitStructure.GPIO_Mode    = GPIO_Mode_AN;
-  GPIO_InitStructure.GPIO_PuPd    = GPIO_PuPd_NOPULL;
-  GPIO_Init(adc->ch->port, &GPIO_InitStructure);
-}
+  LL_DMA_InitTypeDef DMA_InitStructure;
 
-static void _bsp_adc_int_config(BSP_ADC_HANDLE *adc)
-{
-  NVIC_InitTypeDef    NVIC_InitStructure;
-  
-  NVIC_InitStructure.NVIC_IRQChannel            = adc->irq;
-  NVIC_InitStructure.NVIC_IRQChannelPriority    = adc->priority;
-  NVIC_InitStructure.NVIC_IRQChannelCmd         = ENABLE;
-  NVIC_Init(&NVIC_InitStructure);
-}
+  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA1);
 
-static void _bsp_adc_dma_config(BSP_ADC_HANDLE *adc)
-{
-  DMA_InitTypeDef     DMA_InitStructure;
-  NVIC_InitTypeDef    NVIC_InitStructure;
-  
-  RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
-  
-  NVIC_InitStructure.NVIC_IRQChannel = adc->irq_dma;     
-  NVIC_InitStructure.NVIC_IRQChannelPriority = adc->priority;  
-  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;                      
-  NVIC_Init(&NVIC_InitStructure);  
-    
-  DMA_DeInit(adc->dma_channel);                   
-  DMA_StructInit(&DMA_InitStructure); 
-  
-  DMA_InitStructure.DMA_PeripheralBaseAddr  = (uint32_t)&(ADC1->DR);
-  DMA_InitStructure.DMA_MemoryBaseAddr      = (uint32_t)&regular_adc_data_table[0];
-  DMA_InitStructure.DMA_DIR                 = DMA_DIR_PeripheralSRC;
-  DMA_InitStructure.DMA_BufferSize          = ADC_MOST_SAMPLE_CH_NUM;
-  DMA_InitStructure.DMA_PeripheralInc       = DMA_PeripheralInc_Disable;
-  DMA_InitStructure.DMA_MemoryInc           = DMA_MemoryInc_Enable;
-  DMA_InitStructure.DMA_PeripheralDataSize  = DMA_PeripheralDataSize_HalfWord;
-  DMA_InitStructure.DMA_MemoryDataSize      = DMA_MemoryDataSize_HalfWord;
-  DMA_InitStructure.DMA_Mode                = DMA_Mode_Circular;
-  DMA_InitStructure.DMA_Priority            = DMA_Priority_High;
-  DMA_InitStructure.DMA_M2M                 = DMA_M2M_Disable;
-  DMA_Init(adc->dma_channel, &DMA_InitStructure);
-  
-  DMA_ClearITPendingBit(DMA_IT_TC); 
-  DMA_ITConfig(adc->dma_channel, DMA_IT_TC, ENABLE);              
-    
+  NVIC_SetPriority(DMA1_Channel1_IRQn, PRIO_L3);
+  NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+
+  LL_DMA_DeInit(DMA1, LL_DMA_CHANNEL_1);
+  LL_DMA_StructInit(&DMA_InitStructure);
+
+  LL_DMA_SetDataTransferDirection(DMA1, LL_DMA_CHANNEL_1,
+                                  LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
+  LL_DMA_SetChannelPriorityLevel(DMA1, LL_DMA_CHANNEL_1, LL_DMA_PRIORITY_LOW);
+  LL_DMA_SetMode(DMA1, LL_DMA_CHANNEL_1, LL_DMA_MODE_CIRCULAR);
+
+  LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_1,ADC_MOST_SAMPLE_ONCE * ADC_CH_NUM);
+  LL_DMA_SetPeriphSize(DMA1, LL_DMA_CHANNEL_1, LL_DMA_PDATAALIGN_HALFWORD);
+  LL_DMA_SetPeriphAddress(DMA1, LL_DMA_CHANNEL_1, (uint32_t) & (ADC1->DR));
+  LL_DMA_SetPeriphIncMode(DMA1, LL_DMA_CHANNEL_1, LL_DMA_PERIPH_NOINCREMENT);
+  LL_DMA_SetMemorySize(DMA1, LL_DMA_CHANNEL_1, LL_DMA_MDATAALIGN_HALFWORD);
+  LL_DMA_SetMemoryAddress(DMA1, LL_DMA_CHANNEL_1,
+                          (uint32_t)&px_adc_data_management->pus_sample_result);
+  LL_DMA_SetMemoryIncMode(DMA1, LL_DMA_CHANNEL_1, LL_DMA_MEMORY_INCREMENT);
+
   /* DMA1 Channel1 enable */
-  DMA_Cmd(adc->dma_channel, ENABLE);
+  LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_1);
+  LL_DMA_ClearFlag_TC1(DMA1);
+  LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_1);
 }
 
-static void _bsp_adc_hardware_setup(BSP_ADC_HANDLE *adc)
+// @function 初始化ADC模块以及通道引脚；
+//           在调用该函数之前，必须先提供定义为：
+//            xAdcChannel_t px_adc_pin_use_table[ADC_CH_NUM]
+//           的通道参数配置表，告诉初始化过程中引脚编号、通道编号等信息；
+//           该初始化过程会按照参数配置表给定的通道数量和信息自动完成初始化；
+// @para 无；
+// @return xUserBool_t - ADC初始化结果；
+xUserBool_t x_bsp_adc_setup(void)
 {
-  ADC_InitTypeDef     ADC_InitStructure;
- 
-  RCC_ADCCLKConfig(RCC_ADCCLK_HSI14);  
-  RCC_APB2PeriphClockCmd(DRV_ADC_CLK, ENABLE);
+  { // IO初始化；
+    LL_GPIO_InitTypeDef GPIO_InitStructure;
 
-  ADC_DeInit(adc->ID);
-  ADC_StructInit(&ADC_InitStructure);
+    GPIO_InitStructure.Mode = LL_GPIO_MODE_ANALOG;
+    GPIO_InitStructure.Pull = LL_GPIO_PULL_NO;
 
-  ADC_InitStructure.ADC_Resolution              = ADC_Resolution_10b;
-  ADC_InitStructure.ADC_ContinuousConvMode      = DISABLE; 
-  ADC_InitStructure.ADC_ExternalTrigConvEdge    = ADC_ExternalTrigConvEdge_None;
-  ADC_InitStructure.ADC_DataAlign               = ADC_DataAlign_Right;
-  ADC_InitStructure.ADC_ScanDirection           = ADC_ScanDirection_Backward;
-  ADC_Init(adc->ID, &ADC_InitStructure); 
-  
-  ADC_ITConfig(adc->ID, ADC_IT_EOSEQ, ENABLE);
- 
-  /* ADC Calibration */
-  ADC_GetCalibrationFactor(adc->ID);
-  /* Enable the ADC peripheral */
-  ADC_Cmd(adc->ID, ENABLE);  
-  /* Wait the ADRDY falg */
-  while(!ADC_GetFlagStatus(adc->ID, ADC_FLAG_ADRDY)); 
-    
-  /* Enable ADC_DMA */  
-  ADC_DMACmd(adc->ID, ENABLE);
-  /* ADC DMA request in circular mode */
-  ADC_DMARequestModeConfig(adc->ID, ADC_DMAMode_Circular);
-  
-  /* ADC1 regular Software Start Conv */ 
-  //ADC_StartOfConversion(DRV_ADC_TEMP_INDEX);
+    for (uint8_t i = 0; i < ADC_CH_NUM; i++) {
+      LL_AHB1_GRP1_EnableClock(px_adc_pin_use_table[i].ul_clock_source);
+
+      GPIO_InitStructure.Pin = px_adc_pin_use_table[i].ul_pin;
+      LL_GPIO_Init(px_adc_pin_use_table[i].px_port, &GPIO_InitStructure);
+    }
+  }
+
+  {  // 创建数据管理空间；
+    px_adc_data_management =
+        (xAdcDataManagement_t *)calloc(1, sizeof(xAdcDataManagement_t));
+    if (px_adc_data_management == NULL) {
+      return USR_FALSE;
+    }
+  }
+
+  // DMA初始化
+  prv_bsp_adc_dma_config();
+
+  { // ADC初始化；
+    LL_APB1_GRP2_EnableClock(DRV_ADC_CLK);
+    LL_ADC_DeInit(ADC1);
+
+    LL_ADC_InitTypeDef ADC_InitStructure;
+    LL_ADC_StructInit(&ADC_InitStructure);
+
+    ADC_InitStructure.Clock = LL_ADC_CLOCK_SYNC_PCLK_DIV2;
+    ADC_InitStructure.Resolution = LL_ADC_RESOLUTION_10B;
+    ADC_InitStructure.DataAlignment = LL_ADC_DATA_ALIGN_RIGHT;
+    ADC_InitStructure.LowPowerMode = LL_ADC_LP_MODE_NONE;
+    LL_ADC_Init(ADC1, &ADC_InitStructure);
+
+    LL_ADC_REG_InitTypeDef ADC_REG_InitStruct;
+
+    ADC_REG_InitStruct.TriggerSource = LL_ADC_REG_TRIG_SOFTWARE;
+    ADC_REG_InitStruct.SequencerDiscont = LL_ADC_REG_SEQ_DISCONT_DISABLE;
+    ADC_REG_InitStruct.ContinuousMode = LL_ADC_REG_CONV_CONTINUOUS;
+    ADC_REG_InitStruct.DMATransfer = LL_ADC_REG_DMA_TRANSFER_LIMITED;
+    ADC_REG_InitStruct.Overrun = LL_ADC_REG_OVR_DATA_PRESERVED;
+    LL_ADC_REG_Init(ADC1, &ADC_REG_InitStruct);
+
+    LL_ADC_REG_SetSequencerScanDirection(ADC1, LL_ADC_REG_SEQ_SCAN_DIR_FORWARD);
+    LL_ADC_SetSamplingTimeCommonChannels(ADC1, LL_ADC_SAMPLINGTIME_239CYCLES_5);
+
+    // Configure Regular Channel；
+    for (uint8_t i = 0; i < ADC_CH_NUM; i++) {
+      LL_ADC_REG_SetSequencerChAdd(ADC1, px_adc_pin_use_table[i].ul_adc_ch);
+    }
+
+    LL_ADC_DisableIT_EOC(ADC1);
+    LL_ADC_DisableIT_EOS(ADC1);
+
+    LL_ADC_Enable(ADC1);
+    LL_ADC_REG_StartConversion(ADC1);
+  }
+
+  return USR_TRUE;
 }
 
-BSP_ADC_HANDLE bsp_adc_open(BSP_ADC_CH *ch)
+// @function ADC中断回调函数；主要在一次采集结束后，进行均值计算，并开启下一次采集；
+// @para 无；
+// @return 无；
+void v_bsp_adc_int_callback(void)
 {
-  
-  if(ch == NULL)
-  {
-    return drvDefaultADCSet;
+  uint32_t pul_sum[ADC_CH_NUM];
+  memset(pul_sum, '\0', ADC_CH_NUM * sizeof(uint32_t));
+
+  for (uint8_t i = 0; i < ADC_MOST_SAMPLE_ONCE; i++) {
+    for (uint8_t j = 0; j < ADC_CH_NUM; j++) {
+      pul_sum[j] += px_adc_data_management->pus_sample_result[i][j];
+    }
   }
-  BSP_ADC_HANDLE drvADC = drvDefaultADCSet;
-  
-  drvADC.ch = ch;
-  if(drvDefaultADCSet.flag == 0)
-  {
-    _bsp_adc_int_config(&drvADC);
-    _bsp_adc_dma_config(&drvADC);
-    _bsp_adc_hardware_setup(&drvADC);
-    
-    //���ADC�Ѿ���ʼ��
-    drvDefaultADCSet.flag = 1;
+
+  for (uint8_t i = 0; i < ADC_CH_NUM; i++) {
+    px_adc_data_management->pus_final_result[i] =
+        pul_sum[i] / ADC_MOST_SAMPLE_ONCE;
   }
-  _bsp_adc_pins_config(&drvADC);
-    /* Convert the ADC1 Channel 1 /  with 13.5 Cycles as sampling time */ 
-  ADC_ChannelConfig(drvADC.ID, ch->ch, ADC_SampleTime_13_5Cycles);
-  
-  return drvADC;
+
+  // 重启转换；
+  LL_ADC_REG_StartConversion(ADC1);
 }
 
-//����ADCת��
-void bsp_adc_restart(BSP_ADC_HANDLE *adc)
+// @function 获取指定ADC通道的采集值；
+// @para uc_ad_ch - AD通道编号；
+// @return 通道采集值，-1表示无效采集；
+uint16_t us_bsp_get_adc_value(xTableAdcChannelIndex_t x_ad_ch)
 {
-  //allow a new sample sequence
-  //if(_isBit_set(ADC_ONCE_SAMPLE_FINISH, adc_sample_flag))
-  {
-    //_flag_clr_bit(ADC_ONCE_SAMPLE_FINISH, adc_sample_flag);
-    ADC_StartOfConversion(adc->ID);
-  }
+  return px_adc_data_management->pus_final_result[x_ad_ch];
 }
-
-//����Ƿ��������ת��
-void bsp_adc_restart_check(BSP_ADC_HANDLE *adc)
-{
-  if(!_isBit_set(ADC_ONCE_SAMPLE_FINISH, adc_sample_flag))
-  {
-    ADC_StartOfConversion(adc->ID);
-  }
-}
-
-float bsp_adc_get_voltage(BSP_ADC_HANDLE *adc)
-{
-  uint8_t j = 0;
-  uint32_t sum = 0;
-  float _voltage = 0.0;
-  
-  if(!_isBit_set(ADC_READY_RETURN_TEMP, adc_sample_flag))
-  {
-    return NULL;
-  }
-  else 
-  {
-    _flag_clr_bit(ADC_READY_RETURN_TEMP, adc_sample_flag);
-  }
-  
-  for(j = 0; j < ADC_MOST_SAMPLE_ONCE; j++)
-  {
-    sum += adc->ch->usr_data[j];
-  }
-  //����ƽ��ֵ
-  sum = sum / ADC_MOST_SAMPLE_ONCE;
-  //�����ѹ
-  _voltage = sum / 1024.0 * 3.3;
-  
-  return _voltage;
-}
-
-static float _bsp_voltage_to_temp(float vol_value)
-{
-  uint8_t i = 0;
-  uint32_t vol_integer = 0;
-  uint8_t n_node = 4; //С�������λ��
-  float vol_temp = 0.0; //�洢����С��λ����������ĵ�ѹֵ
-  float multi_factor = 1.0;
-  float temp_value = TEMP_ERROR;
-  
-  if(vol_value == NULL)
-  {
-    return temp_value;
-  }
-  
-  for(i = 0; i < n_node; i++)
-    multi_factor *= 10;
-  
-  vol_integer = (uint32_t)(vol_value * multi_factor);
-    
-  if(((uint32_t)(vol_value * multi_factor * 10) % 10) >= 5)
-    vol_integer += 1;
-  
-  vol_temp = vol_integer / multi_factor;
-
-  if(vol_temp <= 0.001)
-    temp_value = TEMP_ZERO_VOL;
-  
-  if((vol_temp >= 0.3) && (vol_temp < 0.7))//-20~0
-  {
-    temp_value = 50 * vol_temp - 35;
-  }
-  else if((vol_temp >= 0.7) && (vol_temp < 1.5))//0~20
-  {
-    temp_value = 25 * vol_temp - 17.5;
-  }
-  else if((vol_temp >= 1.5) && (vol_temp < 2.2))//20~40
-  {
-    temp_value = 28.5 * vol_temp - 22.75;
-  }
-  else if((vol_temp >= 2.2) && (vol_temp < 2.7))//40~60
-  {
-    temp_value = 40 * vol_temp - 48;
-  }
-  else if((vol_temp >= 2.7) && (vol_temp < 3.0))//60~80
-  {
-    temp_value = 66.6 * vol_temp - 119.82;
-  }
-  else if((vol_temp >= 3.0) && (vol_temp < 3.1314))//80~100
-  {
-    temp_value = 152.2 * vol_temp - 376.6;
-  }
-  else if((vol_temp >= 3.1314) && (vol_temp < 3.2065))//100~120
-  {
-    temp_value = 266.3 * vol_temp - 733.9;
-  }
-  else if(vol_temp >= 3.2065)
-  {
-    temp_value = 405.8 * vol_temp - 1181.34;
-  }
-    
-  return temp_value;
-}
-
-float bsp_adc_get_temperature(float voltage)
-{
-  float _temperature = TEMP_ERROR;
-  
-  _temperature = _bsp_voltage_to_temp(voltage);
-     
-  return _temperature;
-}
-

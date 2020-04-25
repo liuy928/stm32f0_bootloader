@@ -1,76 +1,67 @@
 /**************************************************************************
   Company:
     Self.
-    
+
   File Name:
     bsp_timer.h
 
   Description:
-    .                                                         
+    .
   **************************************************************************/
 
 #ifndef __BSP_TIMER_H
 #define __BSP_TIMER_H
 
 // *****************************************************************************
-// *****************************************************************************
 // Section: File includes
 // *****************************************************************************
-// *****************************************************************************
-#include "system_includes.h"
+#include "system_platform_config.h"
 
-
-// *****************************************************************************
 // *****************************************************************************
 // Section: Data Types.
 // *****************************************************************************
-// *****************************************************************************
-#define TIMER_FIXED_PRESCALER       1
+#define TIMER_FIXED_PRESCALER       2
 
-typedef enum
-{
-  kChannel1  = 0x01,
-  kChannel2  = 0x02,
-  kChannel3  = 0x04,
-  kChannel4  = 0x08,
-}TimerOCChannelTable;
+// PWM占空比可调级数；在修改PWM占空比的时候按照此宏定义作为基数进行传入；
+// 例如如果需要50%的占空比，则相关API应该传入:DRV_PWM_MAX_DUTY_STEP / 2；
+#define DRV_PWM_MAX_DUTY_STEP       (1000ul)
 
-typedef enum{
-  BSP_TIMER_OPEN_NORMAL           = 0x00,
-  BSP_TIMER_OPEN_UPDATE_INT       = 0x01,    
-  BSP_TIMER_OPEN_PWM_OUT          = 0x02,             
-}BSP_TIMER_OPEN_MODE;
+// 定时器管理结构体；
+typedef struct {
+  TIM_TypeDef*      px_timer_index;   // 定时器索引；
+  uint16_t          us_freq;          // P中断频率，单位Hz；
 
-typedef struct
-{
-    TIM_TypeDef           *ID;
-    IRQn_Type             irq;
-    uint16_t              freq;  //interrupt freq
-    
-    SYS_INT_PRIORITY      priority;
-    uint8_t               open_mode;
-    uint8_t               oc_channel_mask;
-}BSP_TIMER_HANLDE;
+  xSysIntPriority_t x_priority;       // 定时器中断优先级；
+  xUserBool_t       x_is_pwm_mode;    // 是否运行在PWM模式；
+} xTimerBase_t;
 
-#if SYSTEM_USING_TIM1
-extern BSP_TIMER_HANLDE drvTimer1;
-#endif
+// PWM通道管理结构体；
+typedef struct {
+  TIM_TypeDef*  px_timer_container; // PWM通道所属的定时器；
+  uint16_t      us_pwm_ch;          // pwm通道号；
+  uint16_t      us_start_duty;      // pwm信号起始占空比，最大值：DRV_PWM_MAX_DUTY_STEP；
 
-#if SYSTEM_USING_LED_TIMER_GROUP1
-extern BSP_TIMER_HANLDE drv_timer_led_group1;
-#endif 
+  // 通道引脚信息；
+  GPIO_TypeDef  *px_port;
+  uint32_t      ul_pin;
+  uint32_t      ul_pin_af;
+  uint32_t      ul_pin_clock_source;
+} xTimerPwmChannel_t;
 
-#if SYSTEM_USING_LED_TIMER_GROUP2
-extern BSP_TIMER_HANLDE drv_timer_led_group2;
-#endif
+#ifndef PWM_CH_NUM
+#define PWM_CH_NUM 1
+#endif // #ifndef PWM_CH_NUM
 
-// *****************************************************************************
+// 仅声明，需要在应用层定义并赋值；
+extern xTimerBase_t x_bsp_timer1_base;
+extern xTimerBase_t x_bsp_timer2_base;
+extern xTimerPwmChannel_t px_pwm_pin_use_table[PWM_CH_NUM];
+
 // *****************************************************************************
 // Section: Interface export.
 // *****************************************************************************
-// *****************************************************************************
-extern void bsp_timer_initialize(BSP_TIMER_HANLDE* timer_index, 
-                                 SYS_INT_PRIORITY prio, uint8_t open_mode, uint8_t oc_channel);
-extern uint8_t bsp_pwm_led_adjustment(BSP_TIMER_HANLDE* timer_index, uint32_t ch, float pwm_duty);
+extern xUserBool_t v_bsp_timer_base_init(xTimerBase_t* px_timer_base);
+extern void v_bsp_timer_pwm_init(void);
+extern void v_bsp_timer_pwm_duty_set(uint8_t uc_pwm_index, uint16_t us_duty);
 
 #endif // #ifndef __BSP_TIMER_H

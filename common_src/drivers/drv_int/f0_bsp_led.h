@@ -20,18 +20,21 @@
 // *****************************************************************************
 // Section: Data Types.
 // *****************************************************************************
-typedef enum{ kTurnOn = 1, kTurnOff = 0, }LedStatusTable;
-typedef enum{ kLed3 = 3, kLed4 = 4, kLed5 = 5, kLed6 = 6, }LedIndexTable;
-
+typedef struct {
+  GPIO_TypeDef *px_port;
+  uint32_t     ul_pin;
+  uint32_t     ul_clock_source;
+} xLedPins_t;
 
 // *****************************************************************************
 // Section: Interface export.
 // *****************************************************************************
-extern void vBspLedInit(void);
+extern xLedPins_t px_led_pin_use_table[LED_NUM];
 
-extern void vBspLedToggle(LedIndexTable led_index);
-extern void vBspLedSet(LedIndexTable led_index,
-                       LedStatusTable status);
+extern void v_bsp_led_init(void);
+
+extern void v_bsp_led_toggle(xTableLedIndex_t x_index);
+extern void v_bsp_led_set(xTableLedIndex_t x_index, xUserLevel_t x_status);
 
 #endif // #ifndef __BSP_LED_H
 

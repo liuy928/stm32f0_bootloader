@@ -45,7 +45,7 @@
         </option>
         <option>
           <name>MemFile</name>
-          <state>$TOOLKIT_DIR$\CONFIG\debugger\ST\STM32F030CC.ddf</state>
+          <state>$TOOLKIT_DIR$\CONFIG\debugger\ST\STM32F072CB.ddf</state>
         </option>
         <option>
           <name>RunToEnable</name>
@@ -77,7 +77,7 @@
         </option>
         <option>
           <name>OCDownloadVerifyAll</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>OCProductVersion</name>
@@ -85,7 +85,7 @@
         </option>
         <option>
           <name>OCDynDriverList</name>
-          <state>STLINK_ID</state>
+          <state>JLINK_ID</state>
         </option>
         <option>
           <name>OCLastSavedByProductVersion</name>
@@ -113,7 +113,7 @@
         </option>
         <option>
           <name>FlashLoadersV3</name>
-          <state>$TOOLKIT_DIR$\config\flashloader\ST\FlashSTM32F03xxC.board</state>
+          <state>$TOOLKIT_DIR$\config\flashloader\ST\FlashSTM32F07xxB.board</state>
         </option>
         <option>
           <name>OCImagesSuppressCheck1</name>
@@ -1143,7 +1143,7 @@
         <debug>1</debug>
         <option>
           <name>CRDIDriverDll</name>
-          <state>Browse to your RDI driver</state>
+          <state>###Uninitialized###</state>
         </option>
         <option>
           <name>CRDILogFileCheck</name>

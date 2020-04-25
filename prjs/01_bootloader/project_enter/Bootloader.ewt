@@ -2323,13 +2323,10 @@
       </file>
     </group>
     <file>
-      <name>$PROJ_DIR$\Bootloader.icf</name>
-    </file>
-    <file>
       <name>$PROJ_DIR$\main.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\stm32f030xc_flash.icf</name>
+      <name>$PROJ_DIR$\stm32f072xb_flash.icf</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\source\applications\stm32f0xx_it.c</name>
@@ -2348,9 +2345,6 @@
           <name>$PROJ_DIR$\..\..\..\common_src\drivers\drv_int\f0_bsp_led.c</name>
         </file>
         <file>
-          <name>$PROJ_DIR$\..\..\..\common_src\drivers\drv_int\f0_bsp_spi.c</name>
-        </file>
-        <file>
           <name>$PROJ_DIR$\..\..\..\common_src\drivers\drv_int\f0_bsp_usart.c</name>
         </file>
         <file>
@@ -2359,9 +2353,6 @@
       </group>
       <group>
         <name>drv</name>
-        <file>
-          <name>$PROJ_DIR$\..\..\..\common_src\drivers\drv_ext\drv_spi_flash.c</name>
-        </file>
       </group>
       <group>
         <name>system</name>
@@ -2381,7 +2372,7 @@
       <group>
         <name>boot</name>
         <file>
-          <name>$PROJ_DIR$\..\..\..\common_src\drivers\drv_stm32f0_hal\CMSIS\Device\ST\STM32F0xx\Source\Templates\iar\startup_stm32f030xc.s</name>
+          <name>$PROJ_DIR$\..\..\..\common_src\drivers\drv_stm32f0_hal\CMSIS\Device\ST\STM32F0xx\Source\Templates\iar\startup_stm32f072xb.s</name>
         </file>
       </group>
       <group>
@@ -2390,19 +2381,10 @@
           <name>$PROJ_DIR$\..\..\..\common_src\drivers\drv_stm32f0_hal\STM32F0xx_HAL_Driver\Src\stm32f0xx_hal.c</name>
         </file>
         <file>
-          <name>$PROJ_DIR$\..\..\..\common_src\drivers\drv_stm32f0_hal\STM32F0xx_HAL_Driver\Src\stm32f0xx_hal_cortex.c</name>
-        </file>
-        <file>
           <name>$PROJ_DIR$\..\..\..\common_src\drivers\drv_stm32f0_hal\STM32F0xx_HAL_Driver\Src\stm32f0xx_hal_flash.c</name>
         </file>
         <file>
           <name>$PROJ_DIR$\..\..\..\common_src\drivers\drv_stm32f0_hal\STM32F0xx_HAL_Driver\Src\stm32f0xx_hal_flash_ex.c</name>
-        </file>
-        <file>
-          <name>$PROJ_DIR$\..\..\..\common_src\drivers\drv_stm32f0_hal\STM32F0xx_HAL_Driver\Src\stm32f0xx_hal_rcc.c</name>
-        </file>
-        <file>
-          <name>$PROJ_DIR$\..\..\..\common_src\drivers\drv_stm32f0_hal\STM32F0xx_HAL_Driver\Src\stm32f0xx_hal_rcc_ex.c</name>
         </file>
         <file>
           <name>$PROJ_DIR$\..\..\..\common_src\drivers\drv_stm32f0_hal\STM32F0xx_HAL_Driver\Src\stm32f0xx_ll_dma.c</name>

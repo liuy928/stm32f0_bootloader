@@ -1,83 +1,49 @@
 /**************************************************************************
   Company:
     Self.
-    
+
   File Name:
     bsp_adc.h
 
   Description:
-    .                                                         
+    .
   **************************************************************************/
 
 #ifndef __BSP_ADC_H
 #define __BSP_ADC_H
 
 // *****************************************************************************
-// *****************************************************************************
 // Section: File includes
 // *****************************************************************************
-// *****************************************************************************
-#include "system_includes.h"
+#include "system_platform_config.h"
 
-
-// *****************************************************************************
 // *****************************************************************************
 // Section: Data Types.
 // *****************************************************************************
-// *****************************************************************************
-#define ADC_ONCE_SAMPLE_FINISH   0x00
-#define ADC_READY_RETURN_TEMP    0x01
 
-#define TEMP_ERROR              -200.0
-#define TEMP_ZERO_VOL           -100.0
+typedef struct {
+  GPIO_TypeDef *px_port;
+  uint32_t     ul_pin;
+  uint32_t     ul_clock_source;
+  uint32_t     ul_adc_ch;
+} xAdcChannel_t;
 
-typedef struct{
-  uint16_t      pin;
-  GPIO_TypeDef  *port;
-  uint32_t      clk;
-  
-  uint32_t      ch;
-  uint16_t       *usr_data;
-}BSP_ADC_CH;
+typedef struct {
+  // DMA采集到的数据会放入该数组；
+  uint16_t pus_sample_result[ADC_MOST_SAMPLE_ONCE][ADC_CH_NUM];
+  // 一次采集结束后会对采集结果求均值，均值会放入该数组；
+  uint16_t pus_final_result[ADC_CH_NUM];
+} xAdcDataManagement_t;
 
-typedef struct 
-{
-  //for module
-  ADC_TypeDef           *ID;
-  IRQn_Type             irq;
-  IRQn_Type             irq_dma;
-   
-  SYS_INT_PRIORITY      priority;
-  uint8_t               open_mode;
-    
-  DMA_Channel_TypeDef*  dma_channel;  
-  
-  uint8_t flag;
-  //for channel
-  BSP_ADC_CH          *ch;
-}BSP_ADC_HANDLE;
-
-// *****************************************************************************
 // *****************************************************************************
 // Section: Interface export.
 // *****************************************************************************
-// *****************************************************************************
-extern BSP_ADC_HANDLE drvDefaultADCSet;
-extern BSP_ADC_HANDLE bspADCLed, bspADCSys, bspADCSwitch;
+extern xAdcChannel_t px_adc_pin_use_table[ADC_CH_NUM];
 
-extern uint16_t regular_adc_data_table[ADC_MOST_SAMPLE_CH_NUM];
+extern xUserBool_t x_bsp_adc_setup(void);
 
-extern uint16_t adc_led_sample_table[ADC_MOST_SAMPLE_ONCE];
-extern uint16_t adc_sys_sample_table[ADC_MOST_SAMPLE_ONCE];
-
-extern uint8_t adc_sample_flag;
-
-extern BSP_ADC_HANDLE bsp_adc_open(BSP_ADC_CH *ch);
-
-extern void bsp_adc_restart(BSP_ADC_HANDLE *adc);
-extern void bsp_adc_restart_check(BSP_ADC_HANDLE *adc);
-
-extern float bsp_adc_get_voltage(BSP_ADC_HANDLE *adc);
-float bsp_adc_get_temperature(float voltage);
+extern void v_bsp_adc_int_callback(void);
+extern uint16_t us_bsp_get_adc_value(xTableAdcChannelIndex_t x_ad_ch);
+extern float sys_misc_get_temperature(xTableTemperatureIndex_t x_temp_index);
 
 #endif

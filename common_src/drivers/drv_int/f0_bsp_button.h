@@ -1,12 +1,12 @@
 /**************************************************************************
   Company:
     Self.
-    
+
   File Name:
     bsp_led.c
 
   Description:
-    .                                                         
+    .
   **************************************************************************/
 
 #ifndef __BSP_BTN_H
@@ -17,19 +17,14 @@
 // Section: File includes
 // *****************************************************************************
 // *****************************************************************************
-#include "system_includes.h"
+#include "system_platform_config.h"
+
 
 // *****************************************************************************
 // *****************************************************************************
 // Section: Data Types.
 // *****************************************************************************
 // *****************************************************************************
-#define BUTTON_FIFO_SIZE  8
-
-#define BTN_STATE0    0
-#define BTN_STATE1    1
-#define BTN_STATE2    2
-#define BTN_STATE3    3
 
 typedef enum{ kNone = 0, kShort, kDouble, kLong, }BtnValueTable;
 
@@ -39,16 +34,36 @@ typedef struct{
   uint8_t *fifo;
 }BtnValueFIFO;
 
+
+typedef enum{
+  BTN_STATE0 = 0,
+  BTN_STATE1,
+  BTN_STATE2,
+  BTN_STATE3,
+}BTN_STATE;
+
+
+#define BTN_NUM 1
+typedef enum{
+  BTN_UNKNOWN = 0,
+  BTN_MENU,
+}BTN_INDEX;
+
+
+
+
+
 // *****************************************************************************
 // *****************************************************************************
 // Section: Interface export.
 // *****************************************************************************
 // *****************************************************************************
-#define BTN_STATE   GPIO_ReadInputDataBit(DRV_BTN_PORT, DRV_BTN_PIN) 
 
-extern void bsp_btn_initialize(void);
+extern void vBspButtonInit(void);
+extern void vBspButtonPutOneBtn(BTN_INDEX xIndex);
+extern void vSysButtonProc(void);
+extern void vBspButtonPush(void);
+extern uint8_t xBspButtonPop(void);
 
-extern void bsp_button_put(void);
-extern uint8_t bsp_button_get(void);
 
 #endif
